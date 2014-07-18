@@ -181,6 +181,7 @@ class VMwareVMOps(object):
         4. Attach the disk to the VM by reconfiguring the same.
         5. Power on the VM.
         """
+        template_name = image_meta['properties']['template_name']
         ebs_root = False
         if block_device_info:
             LOG.debug(_("Block device information present: %s")
@@ -287,7 +288,10 @@ class VMwareVMOps(object):
                 CONF.vmware.use_linked_clone
             )
             upload_name = instance['image_ref']
-            upload_folder = '%s/%s' % (self._base_folder, upload_name)
+            if template_name == '':
+                upload_folder = '%s/%s' % (self._base_folder, upload_name)
+            else:
+                upload_folder = '%s/%s' % (template_name, template_name)
 
             # The vmdk meta-data file
             uploaded_file_name = "%s/%s.%s" % (upload_folder, upload_name,
@@ -357,28 +361,30 @@ class VMwareVMOps(object):
                                       dc_info.ref)
                         LOG.debug("Create virtual disk on %s",
                                   data_store_name, instance=instance)
-                        vm_util.create_virtual_disk(self._session,
-                                                    dc_info.ref,
-                                                    adapter_type,
-                                                    disk_type,
-                                                    upload_path,
-                                                    vmdk_file_size_in_kb)
-                        LOG.debug("Virtual disk created on %s.",
-                                  data_store_name, instance=instance)
-                        self._delete_datastore_file(instance,
-                                                    flat_uploaded_vmdk_path,
-                                                    dc_info.ref)
+                        if template_name == '':
+                            vm_util.create_virtual_disk(self._session,
+                                                        dc_info.ref,
+                                                        adapter_type,
+                                                        disk_type,
+                                                        upload_path,
+                                                        vmdk_file_size_in_kb)
+                            LOG.debug("Virtual disk created on %s.",
+                                      data_store_name, instance=instance)
+                            self._delete_datastore_file(instance,
+                                                        flat_uploaded_vmdk_path,
+                                                        dc_info.ref)
                         upload_file_name = flat_uploaded_vmdk_name
                     else:
                         upload_file_name = sparse_uploaded_vmdk_name
 
-                vmware_images.fetch_image(context,
-                                          instance,
-                                          self._session._host_ip,
-                                          dc_info.name,
-                                          data_store_name,
-                                          upload_file_name,
-                                          cookies=cookies)
+                if template_name == '':
+                    vmware_images.fetch_image(context,
+                                              instance,
+                                              self._session._host_ip,
+                                              dc_info.name,
+                                              data_store_name,
+                                              upload_file_name,
+                                              cookies=cookies)
 
                 if not is_iso and disk_type == "sparse":
                     # Copy the sparse virtual disk to a thin virtual disk.
@@ -424,14 +430,15 @@ class VMwareVMOps(object):
                     # Create the blank virtual disk for the VM
                     LOG.debug(_("Create blank virtual disk on %s"),
                               data_store_name, instance=instance)
-                    vm_util.create_virtual_disk(self._session,
-                                                dc_info.ref,
-                                                adapter_type,
-                                                disk_type,
-                                                dest_vmdk_path,
-                                                root_gb_in_kb)
-                    LOG.debug(_("Blank virtual disk created on %s."),
-                              data_store_name, instance=instance)
+                    if template_name == '':
+                        vm_util.create_virtual_disk(self._session,
+                                                    dc_info.ref,
+                                                    adapter_type,
+                                                    disk_type,
+                                                    dest_vmdk_path,
+                                                    root_gb_in_kb)
+                        LOG.debug(_("Blank virtual disk created on %s."),
+                                  data_store_name, instance=instance)
                     root_vmdk_path = dest_vmdk_path
                 else:
                     root_vmdk_path = None
