@@ -181,7 +181,8 @@ class VMwareVMOps(object):
         4. Attach the disk to the VM by reconfiguring the same.
         5. Power on the VM.
         """
-        template_name = image_meta['properties']['template_name']
+        properties = image_meta['properties']
+        template_name = properties.get('template_name')
         ebs_root = False
         if block_device_info:
             LOG.debug(_("Block device information present: %s")
@@ -288,7 +289,7 @@ class VMwareVMOps(object):
                 CONF.vmware.use_linked_clone
             )
             upload_name = instance['image_ref']
-            if template_name == '':
+            if template_name == None:
                 upload_folder = '%s/%s' % (self._base_folder, upload_name)
             else:
                 upload_folder = '%s/%s' % (template_name, template_name)
@@ -361,7 +362,7 @@ class VMwareVMOps(object):
                                       dc_info.ref)
                         LOG.debug("Create virtual disk on %s",
                                   data_store_name, instance=instance)
-                        if template_name == '':
+                        if template_name == None:
                             vm_util.create_virtual_disk(self._session,
                                                         dc_info.ref,
                                                         adapter_type,
@@ -377,7 +378,7 @@ class VMwareVMOps(object):
                     else:
                         upload_file_name = sparse_uploaded_vmdk_name
 
-                if template_name == '':
+                if template_name == None:
                     vmware_images.fetch_image(context,
                                               instance,
                                               self._session._host_ip,
@@ -389,15 +390,15 @@ class VMwareVMOps(object):
                 if not is_iso and disk_type == "sparse":
                     # Copy the sparse virtual disk to a thin virtual disk.
                     disk_type = "thin"
-                    copy_spec = self.get_copy_virtual_disk_spec(client_factory,
-                                                                adapter_type,
-                                                                disk_type)
-                    vm_util.copy_virtual_disk(self._session, dc_info.ref,
-                                              sparse_uploaded_vmdk_path,
-                                              upload_path, copy_spec)
-                    self._delete_datastore_file(instance,
-                                                sparse_uploaded_vmdk_path,
-                                                dc_info.ref)
+ ##                   copy_spec = self.get_copy_virtual_disk_spec(client_factory,
+ ##                                                               adapter_type,
+ ##                                                               disk_type)
+ ##                   vm_util.copy_virtual_disk(self._session, dc_info.ref,
+ ##                                             sparse_uploaded_vmdk_path,
+ ##                                             upload_path, copy_spec)
+ ##                   self._delete_datastore_file(instance,
+ ##                                               sparse_uploaded_vmdk_path,
+ ##                                               dc_info.ref)
                 base_folder = '%s/%s' % (self._base_folder, upload_name)
                 dest_folder = ds_util.build_datastore_path(data_store_name,
                                                            base_folder)
@@ -430,7 +431,7 @@ class VMwareVMOps(object):
                     # Create the blank virtual disk for the VM
                     LOG.debug(_("Create blank virtual disk on %s"),
                               data_store_name, instance=instance)
-                    if template_name == '':
+                    if template_name == None:
                         vm_util.create_virtual_disk(self._session,
                                                     dc_info.ref,
                                                     adapter_type,
