@@ -8,6 +8,7 @@ echo 'Starting packaging...'
 
 
 echo 'Pack compute...'
+mv -f setup.cfg setup.cfg.bak
 echo 'Prepare setup.cfg'
 cp -f nova-compute.cfg setup.cfg
 echo 'Build rpm package...'
@@ -17,5 +18,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+echo 'Pack successfully, rpm packages are in dist/ directory'
 mv setup.cfg.bak setup.cfg
 exit 0
