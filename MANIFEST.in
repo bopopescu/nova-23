@@ -1,5 +1,6 @@
 include AUTHORS
 include ChangeLog
+include etc/nova-compute
 exclude .gitignore
 exclude .gitreview
 
