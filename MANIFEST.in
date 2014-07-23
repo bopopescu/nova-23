@@ -1,6 +1,6 @@
 include AUTHORS
 include ChangeLog
-include etc/openstack-nova-compute
+include etc/nova-compute
 exclude .gitignore
 exclude .gitreview
 
